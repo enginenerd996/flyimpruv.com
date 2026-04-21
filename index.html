@@ -107,43 +107,16 @@
   </footer>
 
   <script>
-    document.getElementById('notifyForm').addEventListener('submit', async function(e) {
+    document.getElementById('notifyForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const email = document.getElementById('emailInput').value;
-      const btn = this.querySelector('button');
-      btn.textContent = 'Sending...';
-      btn.disabled = true;
+      var email = document.getElementById('emailInput').value;
+      // Placeholder — stores locally until email service is configured
+      var emails = JSON.parse(localStorage.getItem('impruv_waitlist') || '[]');
+      emails.push({ email: email, timestamp: new Date().toISOString() });
+      localStorage.setItem('impruv_waitlist', JSON.stringify(emails));
 
-      try {
-        // Klaviyo client-side API — create profile with waitlist source
-        const res = await fetch('https://a.klaviyo.com/client/profiles/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'revision': '2024-10-15'
-          },
-          body: JSON.stringify({
-            data: {
-              type: 'profile',
-              attributes: {
-                email: email,
-                properties: {
-                  'Source': 'Impruv Waitlist',
-                  'Waitlist Signup Date': new Date().toISOString()
-                }
-              }
-            },
-            company_id: 'XYZqrE'
-          })
-        });
-
-        this.style.display = 'none';
-        document.getElementById('successMessage').style.display = 'flex';
-      } catch (err) {
-        btn.textContent = 'Notify me';
-        btn.disabled = false;
-        alert('Something went wrong. Please try again.');
-      }
+      this.style.display = 'none';
+      document.getElementById('successMessage').style.display = 'flex';
     });
   </script>
 </body>
