@@ -105,13 +105,49 @@
     document.getElementById('notifyForm').addEventListener('submit', function(e) {
       e.preventDefault();
       var email = document.getElementById('emailInput').value;
-      // Placeholder — stores locally until email service is configured
-      var emails = JSON.parse(localStorage.getItem('impruv_waitlist') || '[]');
-      emails.push({ email: email, timestamp: new Date().toISOString() });
-      localStorage.setItem('impruv_waitlist', JSON.stringify(emails));
+      var btn = this.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Joining…';
 
-      this.style.display = 'none';
-      document.getElementById('successMessage').style.display = 'flex';
+      fetch('https://a.klaviyo.com/client/subscriptions/?company_id=XMzjsh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'revision': '2024-10-15'
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'subscription',
+            attributes: {
+              custom_source: 'flyimpruv.com waitlist',
+              profile: {
+                data: {
+                  type: 'profile',
+                  attributes: { email: email }
+                }
+              }
+            },
+            relationships: {
+              list: {
+                data: { type: 'list', id: 'S9k9Mq' }
+              }
+            }
+          }
+        })
+      }).then(function(res) {
+        if (res.ok || res.status === 202) {
+          document.getElementById('notifyForm').style.display = 'none';
+          document.getElementById('successMessage').style.display = 'flex';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Notify me';
+          alert('Something went wrong — please try again.');
+        }
+      }).catch(function() {
+        btn.disabled = false;
+        btn.textContent = 'Notify me';
+        alert('Network error — please try again.');
+      });
     });
   </script>
 </body>
